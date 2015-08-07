@@ -10,6 +10,9 @@ Created on 2015年7月30日 下午7:25:38
 '''
 
 import sys,time
+
+sys.dont_write_bytecode = True
+
 from PyQt4 import QtGui, QtCore
 
 from convert2movUI import Ui_toMOVMainWindow
