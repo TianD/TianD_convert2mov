@@ -1,7 +1,9 @@
 eclipse.preferences.version=1
+encoding/LOGO_rc.py=utf-8
 encoding/TianD_convert2movDelegate.py=utf-8
-encoding/TianD_convert2movTableModel.py=utf-8
+encoding/TianD_convert2movTreeModel.py=utf-8
 encoding/TianD_convert2movWidget.py=utf-8
 encoding/__init__.py=utf-8
 encoding/convert2movUI.py=utf-8
+encoding/pyinstaller.py=utf-8
 encoding/showUI.py=utf-8

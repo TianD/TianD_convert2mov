@@ -10,7 +10,6 @@ Created on 2015年7月30日 下午7:25:38
 '''
 
 import sys,time
-from collections import OrderedDict
 
 sys.dont_write_bytecode = True
 
@@ -18,7 +17,7 @@ from PyQt4 import QtGui, QtCore
 
 from convert2movUI import Ui_toMOVMainWindow
 
-import TianD_convert2movTreeModel
+import TianD_convert2movTableModel
 import TianD_convert2movDelegate
 import TianD_convert2movWidget
 
@@ -37,81 +36,65 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.text.setHidden(1)
         
         #tableView receive signal from drop event
-        self.connect(self.treeView, QtCore.SIGNAL("dropped"), self.setTreeView)
+        self.connect(self.tableView, QtCore.SIGNAL("dropped"), self.setTableView)
                     
         #connect clicked signal to refreshDescription command
-        self.treeView.clicked.connect(self.refreshDescription)
+        self.tableView.clicked.connect(self.refreshDescription)
                 
         #run the commads in sub thread
         self.thread = Worker()
         self.upLoadBtn.clicked.connect(self.slotUploadStart)
         self.toMOVBtn.clicked.connect(self.slotConvertStart)
         
-    def setTreeView(self, l):
-        rootNode = TianD_convert2movTreeModel.Node("Root")
         
-        self.analyzePath(l, rootNode)
-        headers = [u"镜头分层", u"文件名", u"起始帧", u"结束帧", u"路径", u"版本", u"是否已经上传", u"check"]
+    def setTableView(self, l):
+        self.list = [#颜色标记, 文件名, 起始帧, 结束帧, [版本列表], 描述
+             ['green', 'a', 1001, 1010, ["c003", "c002", "c001"], "hello this is a"], 
+             ['green', 'b', 1001, 1020, ["c003", "c002", "c001"], "hello this is b"], 
+             ['green', 'c', 1001, 1030, ["c003", "c002", "c001"], ""], 
+             ['green', 'e', 1001, 1040, ["c003", "c002", "c001"], ""], 
+             ['green', 'f', 1001, 1050, ["c003", "c002", "c001"], ""], 
+             [], 
+            ['yellow', 'd', 1001, 1011, ["c003", "c002", "c001"], u"我是C"], 
+            ['yellow', 'h', 1001, 1012, ["c003", "c002", "c001"], ""], 
+            ['yellow', 'k', 1001, 1013, ["c003", "c002", "c001"], ""], 
+            [], 
+            ['red', 'g', 1001, 1016, ["c003", "c002", "c001"], ""], 
+            ['red', 'i', 1001, 1015, ["c003", "c002", "c001"], ""], 
+            ['red', 'j', 1001, 1014, ["c003", "c002", "c001"], ""]
+            ]
+        headers = [u"名称", u"起始帧", u"结束帧", u"版本"]
         
-        self.contentModel = TianD_convert2movTreeModel.TreeModel(rootNode, headers)
-        self.treeView.setModel(self.contentModel)
+        self.contentModel = TianD_convert2movTableModel.TableModel(self.list, headers)
+        self.tableView.setModel(self.contentModel)
+        self.tableView.setShowGrid(0)
+        self.headerView = self.tableView.horizontalHeader()
+        #let first column stretch
+        self.headerView.setResizeMode(0, QtGui.QHeaderView.Stretch)
+        #select a whole row
+        self.tableView.setSelectionBehavior(QtGui.QTableView.SelectRows)
 
         # add comboBox into table view
-        self.treeView.setItemDelegateForColumn(5, TianD_convert2movDelegate.ComboBoxDelegate(self.treeView, rootNode))
+        self.tableView.setItemDelegateForColumn(3, TianD_convert2movDelegate.ComboBoxDelegate(self.tableView, self.list))
         
-#         self.treeView.setItemDelegateForColumn(7, TianD_convert2movDelegate.CheckBoxDelegate(self.treeView, rootNode))
+        row = len(self.list)
+        for r in range(row):
+            if self.list[r]:
+                if self.list[r][4]:
+                    index = self.contentModel.index(r, 3, QtCore.QModelIndex())
+                    self.tableView.openPersistentEditor(index)
         
-        for r in range(rootNode.childCount()):
-            topNode = rootNode.child(r)
-            topindex = self.contentModel.index(r, 5, QtCore.QModelIndex())
-            for i in range(topNode.childCount()):
-                midNode = topNode.child(i)
-                midindex = self.contentModel.index(i, 5, topindex)
-                for h in range(midNode.childCount()):
-                    index = self.contentModel.index(h, 5, midindex)
-                    self.treeView.openPersistentEditor(index)
-                    
-#         for r in range(rootNode.childCount()):
-#             topNode = rootNode.child(r)
-#             topindex = self.contentModel.index(r, 7, QtCore.QModelIndex())
-#             for i in range(topNode.childCount()):
-#                 midNode = topNode.child(i)
-#                 midindex = self.contentModel.index(i, 7, topindex)
-#                 for h in range(midNode.childCount()):
-#                     index = self.contentModel.index(h, 7, midindex)
-#                     self.treeView.openPersistentEditor(index)
+    def loadDir(self, l):
+        for url in l:
+            self.dirModel.setRootPath(url)
+            self.treeView.setModel(self.dirModel)
+            self.treeView.setRootIndex(self.dirModel.index(url))
+        
     
-    def analyzePath(self, l, root):
-        source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 路径, [版本列表], 服务器上是否有, 描述]}}
-                'sc01':{   \
-                        "bg_color": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], 0, "this is sc01 bg_color1"], \
-                                     ["xxxxx", 1001, 1010, "z:\\ddd", ["c001","c002"], 0, "this is sc01 bg_color2"]], \
-                        "occ": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002"], 0, "this is sc01 occ"],]  \
-                        }, 
-                'sc02':{"bg_color": [["xxxxx", 1001, 1011, "z:\\aaa", ["c001","c002","c003"], 1, "this is sc02 bg_color"]]},
-                'sc03':{"bg_color": [["xxxxx", 1001, 1012, "z:\\bbb", ["c001","c002","c003"], 0, "this is sc03 bg_color"]]},
-                'sc04':{"bg_color": [["xxxxx", 1001, 1013, "z:\\aaa", ["c001","c002","c003"], 1, "this is sc04 bg_color"]]},
-                'sc05':{"bg_color": [["xxxxx", 1001, 1011, "z:\\ccc", ["c001"], 0, "this is sc05 bg_color"]]},
-                'sc06':{"bg_color": [["xxxxx", 1001, 1016, "z:\\aaa", ["c001","c002"], 0, "this is sc06 bg_color"]]}
-                }
-        
-        self.orderedDic = OrderedDict(sorted(source.items(), key = lambda t: t[0]))
-        
-        for key, value in self.orderedDic.items():
-            topnode = TianD_convert2movTreeModel.Node(key, root)
-            for ck, cv in self.orderedDic[key].items():
-                midnode = TianD_convert2movTreeModel.Node(ck, topnode)
-                for v in cv:
-                  tipnode = TianD_convert2movTreeModel.Node(v[:-1], midnode)
-
-
     def refreshDescription(self, index):
-        node = index.internalPointer()
         row = index.row()
-        if not node.childCount():
-            parentKey = node.parent().parent().value()
-            key = node.parent().value()
-            descriptionText = self.orderedDic[parentKey][key][row][-1]
+        if self.list[row]:
+            descriptionText = self.list[row][-1]
             self.descriptionBrowser.clear()
             self.descriptionBrowser.append(self.headText)
             self.descriptionBrowser.append("<p><big>&nbsp;&nbsp;%s</big></p>" %descriptionText)

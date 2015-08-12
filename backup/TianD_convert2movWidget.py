@@ -50,9 +50,9 @@ class XProgressBar(QtGui.QProgressBar):
         else :
             self.setStyleSheet(DEFAULT_STYLE)
 
-class TreeView(QtGui.QTreeView):
+class TableView(QtGui.QTableView):
     def __init__(self, type, parent=None):
-        super(TreeView, self).__init__(parent)
+        super(TableView, self).__init__(parent)
         self.setAcceptDrops(True)        
         
     def dragEnterEvent(self, event):

@@ -14,18 +14,21 @@ from PyQt4 import QtCore, QtGui
         
 class ComboBoxDelegate(QtGui.QStyledItemDelegate):
     
-    def __init__(self, parent, data):
+    def __init__(self, parent, root):
         super(ComboBoxDelegate, self).__init__(parent)
         self.parent = parent
-        self.__data = data 
-    
+        self._root = root 
+      
     def createEditor(self, parent, option, index):
+        node = index.internalPointer()
         row = index.row()
         column = index.column()
-        if self.__data[row]:
-            editor = QtGui.QComboBox(parent)
-            editor.addItems(self.__data[row][1:][column])
-            return editor
+        if self._root.childCount():
+            if not node.childCount():
+                childNode = self._root.child(row)
+                editor = QtGui.QComboBox(parent)
+                editor.addItems(node.value()[column-1])
+                return editor
         
     def setEditorData(self, editor, index):
         value = index.model().data(index, QtCore.Qt.DisplayRole)
@@ -34,6 +37,29 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         value = editor.currentIndex()
         model.setData(index, editor.itemData( value, QtCore.Qt.DisplayRole ) )
-
         
         
+# class CheckBoxDelegate(QtGui.QStyledItemDelegate):
+#     
+#     def __init__(self, parent, root):
+#         super(CheckBoxDelegate, self).__init__(parent)
+#         self.parent = parent
+#         self._root = root
+#     
+#     def createEditor(self, parent, option, index):
+#         node = index.internalPointer()
+#         row = index.row()
+#         column = index.column()
+#         if self._root.childCount():
+#             if not node.childCount():
+#                 childNode = self._root.child(row)
+#                 editor = QtGui.QCheckBox(parent)
+#                 return editor
+#     
+#     def setEditorData(self, editor, index):
+#         value = index.model().data(index, QtCore.Qt.DisplayRole)
+#         editor.setCurrentIndex(editor.findText(value[0]))
+#         
+#     def setModelData(self, editor, model, index):
+#         value = editor.currentIndex()
+#         model.setData(index, editor.itemData( value, QtCore.Qt.DisplayRole ) )
