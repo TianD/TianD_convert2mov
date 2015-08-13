@@ -17,7 +17,8 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
     def __init__(self, parent, root):
         super(ComboBoxDelegate, self).__init__(parent)
         self.parent = parent
-        self._root = root 
+        self._root = root
+        self._checkHeader = ["All", "None", "Success", "Warning", "Error"]
       
     def createEditor(self, parent, option, index):
         node = index.internalPointer()
@@ -38,28 +39,3 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
         value = editor.currentIndex()
         model.setData(index, editor.itemData( value, QtCore.Qt.DisplayRole ) )
         
-        
-# class CheckBoxDelegate(QtGui.QStyledItemDelegate):
-#     
-#     def __init__(self, parent, root):
-#         super(CheckBoxDelegate, self).__init__(parent)
-#         self.parent = parent
-#         self._root = root
-#     
-#     def createEditor(self, parent, option, index):
-#         node = index.internalPointer()
-#         row = index.row()
-#         column = index.column()
-#         if self._root.childCount():
-#             if not node.childCount():
-#                 childNode = self._root.child(row)
-#                 editor = QtGui.QCheckBox(parent)
-#                 return editor
-#     
-#     def setEditorData(self, editor, index):
-#         value = index.model().data(index, QtCore.Qt.DisplayRole)
-#         editor.setCurrentIndex(editor.findText(value[0]))
-#         
-#     def setModelData(self, editor, model, index):
-#         value = editor.currentIndex()
-#         model.setData(index, editor.itemData( value, QtCore.Qt.DisplayRole ) )

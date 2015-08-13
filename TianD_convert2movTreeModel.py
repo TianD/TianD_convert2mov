@@ -64,7 +64,7 @@ class Node(object):
         
 class TreeModel(QtCore.QAbstractItemModel):
     
-    def __init__(self, root, headers = [], parent = None):
+    def __init__(self, root, source, headers = [], parent = None):
         super(TreeModel, self).__init__(parent)
         self._rootNode = root
         #self._data = data
@@ -74,6 +74,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self._white = QtGui.QColor("#FFFFFF")
         self.checks = []
         self._headers = headers
+        self.source = source
 
     def rowCount(self, parent):
         if not parent.isValid():
@@ -95,7 +96,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if column == 5:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
         elif not node.childCount() and column == 7:
-            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable
+            return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
         else :
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
@@ -122,30 +123,34 @@ class TreeModel(QtCore.QAbstractItemModel):
             return font
         
         if not node.childCount() and column == 7 and role == QtCore.Qt.CheckStateRole:
-            print "yes"
-            return QtCore.Qt.Checked
+            if node in self.checks:
+                return QtCore.Qt.Checked
+            else :
+                return QtCore.Qt.Unchecked
         
-#         if role == QtCore.Qt.BackgroundRole:
-#             
-#             row = index.row()
-#             column = index.column()
-#             if self._data[row] :
-#                 colorStr = self._data[row][0]
-#             else :
-#                 colorStr = ''
-#             if colorStr == 'green' :
-#                 color = self._green
-#             elif colorStr == 'red' :
-#                 color = self._red
-#             elif colorStr == 'yellow' :
-#                 color = self._yellow
-#             else :
-#                 color = self._white
-#                     
-#             brush = QtGui.QBrush(color, style = QtCore.Qt.Dense4Pattern)
-#             brush.setColor(color)
-#             
-#             return brush
+        if role == QtCore.Qt.BackgroundRole:
+             
+            row = index.row()
+            node = index.internalPointer()
+            if not node.childCount():
+                parent = node.parent()
+                topParent = parent.parent()
+                colorStr = self.source[topParent.value()][parent.value()][row][-1]
+            else :
+                colorStr = ''
+            if colorStr == 'success' :
+                color = self._green
+            elif colorStr == 'error' :
+                color = self._red
+            elif colorStr == 'warning' :
+                color = self._yellow
+            else :
+                color = self._white
+                     
+            brush = QtGui.QBrush(color, style = QtCore.Qt.Dense4Pattern)
+            brush.setColor(color)
+             
+            return brush
        
     def headerData(self, section, orientation, role):
         
@@ -187,16 +192,18 @@ class TreeModel(QtCore.QAbstractItemModel):
         if index.isValid():
             
             column = index.column()
-            
-            if column == 7 and role == QtCore.Qt.DisplayRole:
+            node = index.internalPointer()
+            if column == 7 and role == QtCore.Qt.CheckStateRole:
                 if value == QtCore.Qt.Checked:
-                    print "yes"
+                    self.checks.append(node)
                     return False
                 else :
-                    print "no"
-                    return False
+                    if node in self.checks :
+                        self.checks.remove(node)
+                        return False
             
-                 
+        
+              
 if __name__ == '__main__':
     
     app = QtGui.QApplication(sys.argv)

@@ -78,3 +78,64 @@ class TreeView(QtGui.QTreeView):
             self.emit(QtCore.SIGNAL("dropped"), links)
         else:
             event.ignore()
+            
+class HeaderView(QtGui.QHeaderView):
+
+    def __init__(self, parent=None):
+        super(HeaderView, self).__init__(QtCore.Qt.Horizontal, parent)
+
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.ctxMenu)
+
+        self.setup()
+
+    @pyqtSlot(bool)
+    def printID(self, i):
+        print("id")
+        if i == False:
+            self.hideSection(0)
+        else:
+            self.showSection(0)
+
+    @pyqtSlot(bool)        
+    def printNAME(self, i):
+        print("name")
+        if i == False:
+            self.hideSection(1)
+        else:
+            self.showSection(1)
+
+    @pyqtSlot(bool)        
+    def printUSERNAME(self, i):
+        print("username")
+        if i == False:
+            self.hideSection(2)
+        else:
+            self.showSection(2)
+
+    def setup(self):
+
+        self.id = QAction("id",self)
+        self.id.setCheckable(True)
+        self.id.setChecked(True)
+        self.connect(self.id, SIGNAL("triggered(bool)"), self, SLOT("printID(bool)"))
+
+
+        self.name = QAction("name",self)
+        self.name.setCheckable(True)
+        self.name.setChecked(True)
+        self.connect(self.name, SIGNAL("triggered(bool)"), self, SLOT("printNAME(bool)"))
+
+
+        self.username = QAction("username",self)
+        self.username.setCheckable(True)
+        self.username.setChecked(True)
+        self.connect(self.username, SIGNAL("triggered(bool)"), self, SLOT("printUSERNAME(bool)"))
+
+    def ctxMenu(self, point):
+        menu = QMenu(self)
+        self.currentSection = self.logicalIndexAt(point)
+        menu.addAction(self.id)
+        menu.addAction(self.name)
+        menu.addAction(self.username)
+        menu.exec_(self.mapToGlobal(point))

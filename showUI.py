@@ -53,13 +53,12 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.analyzePath(l, rootNode)
         headers = [u"镜头分层", u"文件名", u"起始帧", u"结束帧", u"路径", u"版本", u"是否已经上传", u"check"]
         
-        self.contentModel = TianD_convert2movTreeModel.TreeModel(rootNode, headers)
+        self.contentModel = TianD_convert2movTreeModel.TreeModel(rootNode, self.orderedDic, headers)
         self.treeView.setModel(self.contentModel)
 
         # add comboBox into table view
         self.treeView.setItemDelegateForColumn(5, TianD_convert2movDelegate.ComboBoxDelegate(self.treeView, rootNode))
         
-#         self.treeView.setItemDelegateForColumn(7, TianD_convert2movDelegate.CheckBoxDelegate(self.treeView, rootNode))
         
         for r in range(rootNode.childCount()):
             topNode = rootNode.child(r)
@@ -84,15 +83,15 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
     def analyzePath(self, l, root):
         source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 路径, [版本列表], 服务器上是否有, 描述]}}
                 'sc01':{   \
-                        "bg_color": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], 0, "this is sc01 bg_color1"], \
-                                     ["xxxxx", 1001, 1010, "z:\\ddd", ["c001","c002"], 0, "this is sc01 bg_color2"]], \
-                        "occ": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002"], 0, "this is sc01 occ"],]  \
+                        "bg_color": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], 0, "this is sc01 bg_color1", "success"], \
+                                     ["xxxxx", 1001, 1010, "z:\\ddd", ["c001","c002"], 0, "this is sc01 bg_color2", "warning"]], \
+                        "occ": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002"], 0, "this is sc01 occ", "success"],]  \
                         }, 
-                'sc02':{"bg_color": [["xxxxx", 1001, 1011, "z:\\aaa", ["c001","c002","c003"], 1, "this is sc02 bg_color"]]},
-                'sc03':{"bg_color": [["xxxxx", 1001, 1012, "z:\\bbb", ["c001","c002","c003"], 0, "this is sc03 bg_color"]]},
-                'sc04':{"bg_color": [["xxxxx", 1001, 1013, "z:\\aaa", ["c001","c002","c003"], 1, "this is sc04 bg_color"]]},
-                'sc05':{"bg_color": [["xxxxx", 1001, 1011, "z:\\ccc", ["c001"], 0, "this is sc05 bg_color"]]},
-                'sc06':{"bg_color": [["xxxxx", 1001, 1016, "z:\\aaa", ["c001","c002"], 0, "this is sc06 bg_color"]]}
+                'sc02':{"bg_color": [["xxxxx", 1001, 1011, "z:\\aaa", ["c001","c002","c003"], 1, "this is sc02 bg_color", "error"]]},
+                'sc03':{"bg_color": [["xxxxx", 1001, 1012, "z:\\bbb", ["c001","c002","c003"], 0, "this is sc03 bg_color", "error"]]},
+                'sc04':{"bg_color": [["xxxxx", 1001, 1013, "z:\\aaa", ["c001","c002","c003"], 1, "this is sc04 bg_color", "error"]]},
+                'sc05':{"bg_color": [["xxxxx", 1001, 1011, "z:\\ccc", ["c001"], 0, "this is sc05 bg_color", "success"]]},
+                'sc06':{"bg_color": [["xxxxx", 1001, 1016, "z:\\aaa", ["c001","c002"], 0, "this is sc06 bg_color", "warning"]]}
                 }
         
         self.orderedDic = OrderedDict(sorted(source.items(), key = lambda t: t[0]))
@@ -111,7 +110,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         if not node.childCount():
             parentKey = node.parent().parent().value()
             key = node.parent().value()
-            descriptionText = self.orderedDic[parentKey][key][row][-1]
+            descriptionText = self.orderedDic[parentKey][key][row][-2]
             self.descriptionBrowser.clear()
             self.descriptionBrowser.append(self.headText)
             self.descriptionBrowser.append("<p><big>&nbsp;&nbsp;%s</big></p>" %descriptionText)
