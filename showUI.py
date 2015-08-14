@@ -18,7 +18,7 @@ from PyQt4 import QtGui, QtCore
 
 from convert2movUI import Ui_toMOVMainWindow
 
-import TianD_convert2movTreeModel
+import TianD_convert2movModel
 import TianD_convert2movDelegate
 import TianD_convert2movWidget
 
@@ -35,7 +35,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.statusbar.addWidget(self.text)
         self.progress.setHidden(1)
         self.text.setHidden(1)
-        
+                
         #tableView receive signal from drop event
         self.connect(self.treeView, QtCore.SIGNAL("dropped"), self.setTreeView)
                     
@@ -47,18 +47,20 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.upLoadBtn.clicked.connect(self.slotUploadStart)
         self.toMOVBtn.clicked.connect(self.slotConvertStart)
         
+
+        
     def setTreeView(self, l):
-        rootNode = TianD_convert2movTreeModel.Node("Root")
+        rootNode = TianD_convert2movModel.Node("Root")
         
         self.analyzePath(l, rootNode)
         headers = [u"镜头分层", u"文件名", u"起始帧", u"结束帧", u"路径", u"版本", u"是否已经上传", u"check"]
         
-        self.contentModel = TianD_convert2movTreeModel.TreeModel(rootNode, self.orderedDic, headers)
+        
+        self.contentModel = TianD_convert2movModel.TreeModel(rootNode, self.orderedDic, headers)
         self.treeView.setModel(self.contentModel)
-
+    
         # add comboBox into table view
         self.treeView.setItemDelegateForColumn(5, TianD_convert2movDelegate.ComboBoxDelegate(self.treeView, rootNode))
-        
         
         for r in range(rootNode.childCount()):
             topNode = rootNode.child(r)
@@ -70,16 +72,10 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                     index = self.contentModel.index(h, 5, midindex)
                     self.treeView.openPersistentEditor(index)
                     
-#         for r in range(rootNode.childCount()):
-#             topNode = rootNode.child(r)
-#             topindex = self.contentModel.index(r, 7, QtCore.QModelIndex())
-#             for i in range(topNode.childCount()):
-#                 midNode = topNode.child(i)
-#                 midindex = self.contentModel.index(i, 7, topindex)
-#                 for h in range(midNode.childCount()):
-#                     index = self.contentModel.index(h, 7, midindex)
-#                     self.treeView.openPersistentEditor(index)
-    
+        
+        #treeview expand all children
+        self.treeView.expandAll()
+        
     def analyzePath(self, l, root):
         source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 路径, [版本列表], 服务器上是否有, 描述]}}
                 'sc01':{   \
@@ -97,11 +93,11 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.orderedDic = OrderedDict(sorted(source.items(), key = lambda t: t[0]))
         
         for key, value in self.orderedDic.items():
-            topnode = TianD_convert2movTreeModel.Node(key, root)
+            topnode = TianD_convert2movModel.Node(key, root)
             for ck, cv in self.orderedDic[key].items():
-                midnode = TianD_convert2movTreeModel.Node(ck, topnode)
+                midnode = TianD_convert2movModel.Node(ck, topnode)
                 for v in cv:
-                  tipnode = TianD_convert2movTreeModel.Node(v[:-1], midnode)
+                  tipnode = TianD_convert2movModel.Node(v[:-1], midnode)
 
 
     def refreshDescription(self, index):
@@ -159,12 +155,15 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         if flag :
             timer = QtCore.QTimer()
             timer.singleShot(1000, self.hideStatus)
-
         else :
             self.text.setHidden(0)
             
     def hideStatus(self):
         self.text.setHidden(1)
+
+    
+    #def checkAll(self):
+        
     
 class Worker(QtCore.QThread):
     progressSignal = QtCore.pyqtSignal(int, str, int)

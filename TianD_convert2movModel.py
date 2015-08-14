@@ -75,6 +75,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.checks = []
         self._headers = headers
         self.source = source
+        self._checkHeaders = ["All", "None", "Success", "Warning", "Error"]
 
     def rowCount(self, parent):
         if not parent.isValid():
@@ -163,6 +164,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 else:
                     return "not implemented"
                 
+                
     def parent(self, index):
         
         node = index.internalPointer()
@@ -201,8 +203,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                     if node in self.checks :
                         self.checks.remove(node)
                         return False
-            
-        
+                  
               
 if __name__ == '__main__':
     
