@@ -28,6 +28,9 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         super(TianD_convert2movUI, self).__init__(parent)
         self.setupUi(self)
         
+        #set window background color
+        #self.setStyleSheet("background: #282825;")
+        
         #show in status bar
         self.progress = TianD_convert2movWidget.XProgressBar()
         self.text = QtGui.QLabel()
@@ -47,7 +50,12 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.upLoadBtn.clicked.connect(self.slotUploadStart)
         self.toMOVBtn.clicked.connect(self.slotConvertStart)
         
-
+        #connect choice label clicked signal to check command
+        self.allLabel.clicked.connect(self.checkAll)
+        self.noneLabel.clicked.connect(self.checkNone)
+        self.greenLabel.clicked.connect(self.checkGreen)
+        self.yellowLabel.clicked.connect(self.checkYellow)
+        self.redLabel.clicked.connect(self.checkRed)
         
     def setTreeView(self, l):
         rootNode = TianD_convert2movModel.Node("Root")
@@ -72,26 +80,29 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                     index = self.contentModel.index(h, 5, midindex)
                     self.treeView.openPersistentEditor(index)
                     
-        
+                    
         #treeview expand all children
         self.treeView.expandAll()
+        self.treeView.setColumnWidth(0, 130)
+        self.treeView.setColumnWidth(1, 180)
+        self.treeView.setColumnWidth(4, 250)
+        self.treeView.setColumnWidth(7, 40)
         
     def analyzePath(self, l, root):
         source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 路径, [版本列表], 服务器上是否有, 描述]}}
                 'sc01':{   \
-                        "bg_color": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], 0, "this is sc01 bg_color1", "success"], \
-                                     ["xxxxx", 1001, 1010, "z:\\ddd", ["c001","c002"], 0, "this is sc01 bg_color2", "warning"]], \
-                        "occ": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002"], 0, "this is sc01 occ", "success"],]  \
+                        "bg_color": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], 0, 0, "this is sc01 bg_color1", "success"], \
+                                     ["xxxxx", 1001, 1010, "z:\\ddd", ["c001","c002"], 0, 0, "this is sc01 bg_color2", "warning"]], \
+                        "occ": [["xxxxx", 1001, 1010, "z:\\aaa", ["c001","c002"], 0, 0, "this is sc01 occ", "success"],]  \
                         }, 
-                'sc02':{"bg_color": [["xxxxx", 1001, 1011, "z:\\aaa", ["c001","c002","c003"], 1, "this is sc02 bg_color", "error"]]},
-                'sc03':{"bg_color": [["xxxxx", 1001, 1012, "z:\\bbb", ["c001","c002","c003"], 0, "this is sc03 bg_color", "error"]]},
-                'sc04':{"bg_color": [["xxxxx", 1001, 1013, "z:\\aaa", ["c001","c002","c003"], 1, "this is sc04 bg_color", "error"]]},
-                'sc05':{"bg_color": [["xxxxx", 1001, 1011, "z:\\ccc", ["c001"], 0, "this is sc05 bg_color", "success"]]},
-                'sc06':{"bg_color": [["xxxxx", 1001, 1016, "z:\\aaa", ["c001","c002"], 0, "this is sc06 bg_color", "warning"]]}
+                'sc02':{"bg_color": [["xxxxx", 1001, 1011, "z:\\aaa", ["c001","c002","c003"], 1, 0, "this is sc02 bg_color", "error"]]},
+                'sc03':{"bg_color": [["xxxxx", 1001, 1012, "z:\\bbb", ["c001","c002","c003"], 0, 0, "this is sc03 bg_color", "error"]]},
+                'sc04':{"bg_color": [["xxxxx", 1001, 1013, "z:\\aaa", ["c001","c002","c003"], 1, 0, "this is sc04 bg_color", "error"]]},
+                'sc05':{"bg_color": [["xxxxx", 1001, 1011, "z:\\ccc", ["c001"], 0, 0, "this is sc05 bg_color", "success"]]},
+                'sc06':{"bg_color": [["xxxxx", 1001, 1016, "z:\\aaa", ["c001","c002"], 0, 0, "this is sc06 bg_color", "warning"]]}
                 }
         
         self.orderedDic = OrderedDict(sorted(source.items(), key = lambda t: t[0]))
-        
         for key, value in self.orderedDic.items():
             topnode = TianD_convert2movModel.Node(key, root)
             for ck, cv in self.orderedDic[key].items():
@@ -162,8 +173,30 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.text.setHidden(1)
 
     
-    #def checkAll(self):
+    def checkAll(self):
+        print "allLabel is clicked"
+        for index in self.contentModel.persistentIndexList():
+            column = index.column()
+            row = index.row()
+            node = index.internalPointer()
+            parent = index.parent()
+            index = self.contentModel.index(row, 7, parent)
+            if not node.childCount():
+                self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
+
+        #print self.contentModel.checks
+                
+    def checkNone(self):
+        print "noneLabel is clicked"
         
+    def checkGreen(self):
+        print "greenLabel is clicked"
+        
+    def checkYellow(self):
+        print "yellowLabel is clicked"
+        
+    def checkRed(self):
+        print "redLabel is clicked"
     
 class Worker(QtCore.QThread):
     progressSignal = QtCore.pyqtSignal(int, str, int)

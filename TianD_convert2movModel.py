@@ -32,7 +32,7 @@ class Node(object):
         return self._children[row]
     
     def childCount(self):
-        return len(self._children)   
+        return len(self._children)
     
     def parent(self):
         return self._parent
@@ -48,7 +48,7 @@ class Node(object):
         for i in range(tabLevel):
             output +='|\t'
             
-        output += "|------" + self._name + "\n"
+        output += "|------" + self._value[0] + "\n"
         
         for child in self._children:
             output += child.log(tabLevel)
@@ -124,10 +124,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return font
         
         if not node.childCount() and column == 7 and role == QtCore.Qt.CheckStateRole:
-            if node in self.checks:
-                return QtCore.Qt.Checked
-            else :
-                return QtCore.Qt.Unchecked
+            return node.value()[column-1]
         
         if role == QtCore.Qt.BackgroundRole:
              
@@ -193,17 +190,18 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         if index.isValid():
             
+            row = index.row()
             column = index.column()
+            parent = index.parent()
             node = index.internalPointer()
             if column == 7 and role == QtCore.Qt.CheckStateRole:
                 if value == QtCore.Qt.Checked:
-                    self.checks.append(node)
-                    return False
+                    node.value()[column-1] = 2
                 else :
-                    if node in self.checks :
-                        self.checks.remove(node)
-                        return False
-                  
+                    node.value()[column-1] = 0
+                
+                self.dataChanged.emit(index, index)
+                return True
               
 if __name__ == '__main__':
     

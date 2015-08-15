@@ -80,7 +80,7 @@ class TreeView(QtGui.QTreeView):
             event.ignore()
 
 class Label(QtGui.QLabel):
-    
+    clicked = QtCore.pyqtSignal()
     def __init__(self, parent = None, flag = QtCore.Qt.Widget):
         super(Label, self).__init__(parent, flag)
         self.setMouseTracking(True)
@@ -88,6 +88,7 @@ class Label(QtGui.QLabel):
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             print "%s" %self.text()
+            self.clicked.emit()
             event.accept()
         else :
             event.ignore()
