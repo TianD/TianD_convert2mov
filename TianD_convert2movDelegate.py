@@ -17,15 +17,15 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
     def __init__(self, parent, root):
         super(ComboBoxDelegate, self).__init__(parent)
         self.parent = parent
-        self._root = root
+        self.__root = root
       
     def createEditor(self, parent, option, index):
         node = index.internalPointer()
         row = index.row()
         column = index.column()
-        if self._root.childCount(): 
+        if self.__root.childCount(): 
             if not node.childCount():
-                childNode = self._root.child(row)
+                childNode = self.__root.child(row)
                 editor = QtGui.QComboBox(parent)
                 editor.addItems(node.value()[column-1])
                 return editor

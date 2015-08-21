@@ -12,34 +12,36 @@ Created on 2015年7月31日 下午4:05:02
 import sys
 from PyQt4 import QtGui, QtCore
 
+import LOGO_rc
+
 class Node(object):
     
     def __init__(self, value, parent = None):
-        self._value = value
-        self._children = []
-        self._parent = parent
+        self.__value = value
+        self.__children = []
+        self.__parent = parent
         
         if parent is not None:
             parent.addChild(self)
             
     def addChild(self, child):
-        self._children.append(child)
+        self.__children.append(child)
         
     def value(self):
-        return self._value 
+        return self.__value 
     
     def child(self, row):
-        return self._children[row]
+        return self.__children[row]
     
     def childCount(self):
-        return len(self._children)
+        return len(self.__children)
     
     def parent(self):
-        return self._parent
+        return self.__parent
 
     def row(self):
-        if self._parent is not None:
-            return self._parent._children.index(self)
+        if self.__parent is not None:
+            return self.__parent.__children.index(self)
         
     def log(self, tabLevel = -1):
         output = ""
@@ -48,9 +50,9 @@ class Node(object):
         for i in range(tabLevel):
             output +='|\t'
             
-        output += "|------" + self._value[0] + "\n"
+        output += "|------" + self.__value[0] + "\n"
         
-        for child in self._children:
+        for child in self.__children:
             output += child.log(tabLevel)
             
         tabLevel -= 1
@@ -66,20 +68,20 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def __init__(self, root, source, headers = [], parent = None):
         super(TreeModel, self).__init__(parent)
-        self._rootNode = root
-        #self._data = data
-        self._red = QtGui.QColor("#FF0000")
-        self._green = QtGui.QColor("#00FF00")
-        self._yellow = QtGui.QColor("#FFFF00")
-        self._white = QtGui.QColor("#FFFFFF")
+        self.__rootNode = root
+        #self.__data = data
+        self.__red = QtGui.QColor("#FF6060")
+        self.__green = QtGui.QColor("#60FF60")
+        self.__yellow = QtGui.QColor("#FFFF60")
+        self.__white = QtGui.QColor("#FFFFFF")
         self.checks = []
-        self._headers = headers
+        self.__headers = headers
         self.source = source
-        self._checkHeaders = ["All", "None", "Success", "Warning", "Error"]
+        self.__checkHeaders = ["All", "None", "Success", "Warning", "Error"]
 
     def rowCount(self, parent):
         if not parent.isValid():
-            parentNode = self._rootNode
+            parentNode = self.__rootNode
         else :
             parentNode = parent.internalPointer()
             
@@ -87,7 +89,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     
     def columnCount(self, parent):
-        return len(self._headers)
+        return len(self.__headers)
 
 
     def flags(self, index):
@@ -96,7 +98,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         node = index.internalPointer()
         if column == 5:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
-        elif not node.childCount() and column == 7:
+        elif not node.childCount() and column == 8:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
         else :
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
@@ -114,8 +116,15 @@ class TreeModel(QtCore.QAbstractItemModel):
                 if column == 0:
                     return node.value()
             else :
-                if column > 0 and column < 6:
+                if column > 0 and column < 7:
                     return node.value()[column-1]
+        
+        if role == QtCore.Qt.DecorationRole:
+            if not node.childCount():
+                if node.value()[6] and column == 7 :
+                    icon = QtGui.QPixmap(":Warning.png")
+                    icon.scaled(icon.size()*0.2)
+                    return icon
         
         if role == QtCore.Qt.FontRole:
             
@@ -123,7 +132,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             font.setPointSize(12)
             return font
         
-        if not node.childCount() and column == 7 and role == QtCore.Qt.CheckStateRole:
+        if not node.childCount() and column == 8 and role == QtCore.Qt.CheckStateRole:
             return node.value()[column-1]
         
         if role == QtCore.Qt.BackgroundRole:
@@ -137,27 +146,28 @@ class TreeModel(QtCore.QAbstractItemModel):
             else :
                 colorStr = ''
             if colorStr == 'success' :
-                color = self._green
+                color = self.__green
             elif colorStr == 'error' :
-                color = self._red
+                color = self.__red
             elif colorStr == 'warning' :
-                color = self._yellow
+                color = self.__yellow
             else :
-                color = self._white
+                color = self.__white
                      
-            brush = QtGui.QBrush(color, style = QtCore.Qt.Dense4Pattern)
+            brush = QtGui.QBrush(color, style = QtCore.Qt.SolidPattern)
             brush.setColor(color)
              
             return brush
-       
+
+            
     def headerData(self, section, orientation, role):
         
         if role == QtCore.Qt.DisplayRole:
             
             if orientation == QtCore.Qt.Horizontal:
                 
-                if section < len(self._headers):
-                    return self._headers[section]
+                if section < len(self.__headers):
+                    return self.__headers[section]
                 else:
                     return "not implemented"
                 
@@ -167,7 +177,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         node = index.internalPointer()
         parentNode = node.parent()
 
-        if parentNode == self._rootNode:
+        if parentNode == self.__rootNode:
             return QtCore.QModelIndex()
         
         return self.createIndex(parentNode.row(), 0, parentNode)
@@ -175,7 +185,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     def index(self, row, column, parent):
         
         if not parent.isValid():
-            parentNode = self._rootNode
+            parentNode = self.__rootNode
         else :
             parentNode = parent.internalPointer()
         
@@ -194,17 +204,15 @@ class TreeModel(QtCore.QAbstractItemModel):
             column = index.column()
             parent = index.parent()
             node = index.internalPointer()
-            if column == 7 and role == QtCore.Qt.CheckStateRole:
+            if column == 8 and role == QtCore.Qt.CheckStateRole:
                 if value == QtCore.Qt.Checked:
                     node.value()[column-1] = 2
                 else :
                     node.value()[column-1] = 0
-                
                 self.dataChanged.emit(index, index)
                 return True
-              
+
 if __name__ == '__main__':
-    
     app = QtGui.QApplication(sys.argv)
     app.setStyle("plastique")
     

@@ -1,5 +1,7 @@
 <RCC>
   <qresource>
     <file>LOGO.png</file>
+    <file>Warning.png</file>
+    <file>circle-progress-bars.gif</file>
   </qresource>
 </RCC>
