@@ -1,4 +1,4 @@
-('E:\\Scripts\\Eclipse\\TianD_convert2mov\\build\\showUI\\showUI.exe',
+('E:\\Scripts\\Eclipse\\TianD_convert2mov\\dist\\showUI.exe',
  False,
  False,
  None,
@@ -6,4 +6,4 @@
  [],
  None,
  False,
- 1439948815L)
+ 1442281078L)

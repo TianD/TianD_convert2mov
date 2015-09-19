@@ -25,5 +25,5 @@ import  os
 
 if __name__ == '__main__':
     from PyInstaller.main import run
-    opts=['showUI.py','-D','-w']
+    opts=['showUI.py','-F','-w']
     run(opts)

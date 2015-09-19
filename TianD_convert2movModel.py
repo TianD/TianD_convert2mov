@@ -70,10 +70,10 @@ class TreeModel(QtCore.QAbstractItemModel):
         super(TreeModel, self).__init__(parent)
         self.__rootNode = root
         #self.__data = data
-        self.__red = QtGui.QColor("#FF6060")
-        self.__green = QtGui.QColor("#60FF60")
-        self.__yellow = QtGui.QColor("#FFFF60")
-        self.__white = QtGui.QColor("#FFFFFF")
+        self.__red = QtGui.QColor("#FF8585")
+        self.__green = QtGui.QColor("#85FF85")
+        self.__yellow = QtGui.QColor("#FFFF85")
+        self.__white = QtGui.QColor("#F0F0F0")
         self.checks = []
         self.__headers = headers
         self.source = source
@@ -153,9 +153,14 @@ class TreeModel(QtCore.QAbstractItemModel):
                 color = self.__yellow
             else :
                 color = self.__white
-                     
+             
+#             linearGradient = QtGui.QLinearGradient()
+#             linearGradient.setColorAt(0, self.__white)
+#             linearGradient.setColorAt(1, color)
+#             brush = QtGui.QBrush(linearGradient)
             brush = QtGui.QBrush(color, style = QtCore.Qt.SolidPattern)
             brush.setColor(color)
+            
              
             return brush
 
@@ -211,24 +216,3 @@ class TreeModel(QtCore.QAbstractItemModel):
                     node.value()[column-1] = 0
                 self.dataChanged.emit(index, index)
                 return True
-
-if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
-    app.setStyle("plastique")
-    
-    rootNode = Node("Root")
-    scName0 = Node("sc0", rootNode)
-    scName1 = Node("sc1", rootNode)  
-    path0 = Node(["name0", "start","end", "path0", scName0.row()], scName0)
-    aa = Node(["name3", "start","end", "path0", path0.row()], path0)
-    path1 = Node(["name1", "start","end", "path1", scName0.row()], scName0)
-    bb = Node(["name4", "start","end", "path0", path1.row()], path1)
-    path2 = Node(["name2", "start","end", "path2", scName1.row()], scName1)
-    cc = Node(["name5", "start","end", "path0", path2.row()], path2)
-    
-    model = TreeModel(rootNode, ["name","path", "start","end", "row"])
-    view = QtGui.QTreeView()
-    view.setModel(model)
-    view.show()
-    
-    sys.exit(app.exec_())

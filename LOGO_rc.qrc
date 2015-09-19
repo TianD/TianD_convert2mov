@@ -2,6 +2,7 @@
   <qresource>
     <file>LOGO.png</file>
     <file>Warning.png</file>
+    <file>arrow_down.png</file>
     <file>circle-progress-bars.gif</file>
   </qresource>
 </RCC>

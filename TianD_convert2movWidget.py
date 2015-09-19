@@ -11,7 +11,7 @@ Created on 2015年7月31日 上午11:29:01
 import random
 from PyQt4 import QtGui, QtCore
 
-DEFAULT_STYLE = """
+XPROGRESS_DEFAULT_STYLE = """
 QProgressBar{
     border: 2px solid grey;
     border-radius: 5px;
@@ -24,7 +24,7 @@ QProgressBar::chunk {
 }
 """
 
-COMPLETED_STYLE = """
+XPROGRESS_COMPLETED_STYLE = """
 QProgressBar{
     border: 2px solid grey;
     border-radius: 5px;
@@ -36,24 +36,33 @@ QProgressBar::chunk {
     margin: 1px;
 }
 """
+
+TREEVIEW_STYLE = """
+QTreeView{
+    border: 2px solid grey;
+    border-radius: 5px;    
+}
+"""
+
 class XProgressBar(QtGui.QProgressBar):
     def __init__(self, parent = None):
         QtGui.QProgressBar.__init__(self, parent)
-        self.setStyleSheet(DEFAULT_STYLE)
+        self.setStyleSheet(XPROGRESS_DEFAULT_STYLE)
         self.step = 0
         self.setMaximumHeight(15)
 
     def setValue(self, value):
         QtGui.QProgressBar.setValue(self, value)
         if value == self.maximum():
-            self.setStyleSheet(COMPLETED_STYLE)
+            self.setStyleSheet(XPROGRESS_COMPLETED_STYLE)
         else :
-            self.setStyleSheet(DEFAULT_STYLE)
+            self.setStyleSheet(XPROGRESS_DEFAULT_STYLE)
 
 class TreeView(QtGui.QTreeView):
     def __init__(self, type, parent=None):
         super(TreeView, self).__init__(parent)
-        self.setAcceptDrops(True)        
+        self.setAcceptDrops(True)
+        self.setStyleSheet(TREEVIEW_STYLE)   
         
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls:
@@ -97,5 +106,3 @@ class Label(QtGui.QLabel):
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtGui.QColor(random.randint(0,255), random.randint(0,255), random.randint(0,255), 255))
         self.setPalette(palette)
-        
-        

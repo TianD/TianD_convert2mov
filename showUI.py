@@ -23,6 +23,34 @@ import TianD_convert2movDelegate
 import TianD_convert2movWidget
 import TianD_loadingUI
 
+TEXTBROWSER_STYLE = """
+QTextBrowser{
+    border: 2px solid grey;
+    border-radius: 5px;
+
+}
+"""
+BUTTON_STYLE = """
+QPushButton{
+    border: 2px solid grey;
+    border-radius: 5px;
+}
+QPushButton:pressed {
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #dadbde, stop: 1 #f6f7fa);
+}
+"""
+HEADERVIEW_STYLE = """
+QHeaderView::section {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 grey, stop: 0.5 #505050,
+                                      stop: 0.6 #434343, stop:1 grey);
+    color: white;
+    padding-left: 4px;
+    border: 1px solid grey;
+}
+"""
+
 class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
 
     def __init__(self, parent = None):
@@ -30,7 +58,12 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.setupUi(self)
         
         #set window background color
-        #self.setStyleSheet("background: #282825;")
+        self.setStyleSheet("background: #F0F0F0;")
+        self.descriptionBrowser.setStyleSheet(TEXTBROWSER_STYLE)
+        self.reorderBtn.setStyleSheet(BUTTON_STYLE)
+        #self.toMOVBtn.setStyleSheet(BUTTON_STYLE)
+        #self.upLoadBtn.setStyleSheet(BUTTON_STYLE)
+        self.runBtn.setStyleSheet(BUTTON_STYLE)
         
         #show in status bar
         self.progress = TianD_convert2movWidget.XProgressBar()
@@ -48,8 +81,9 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                 
         #run the commads in sub thread
         self.thread = Worker()
-        self.upLoadBtn.clicked.connect(self.slotUploadStart)
-        self.toMOVBtn.clicked.connect(self.slotConvertStart)
+        #self.upLoadBtn.clicked.connect(self.slotUploadStart)
+        #self.toMOVBtn.clicked.connect(self.slotConvertStart)
+        self.runBtn.clicked.connect(self.slotUploadStart)
         
         #connect choice label clicked signal to check command
         self.allLabel.clicked.connect(self.checkAll)
@@ -77,11 +111,13 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         rootNode = TianD_convert2movModel.Node("Root")
         
         self.analyzePath(d, rootNode)
-        headers = [u"镜头分层", u"文件名", u"起始帧", u"结束帧", u"路径", u"版本", u"修改日期", u"是否已经上传", u"选择"]
+        headers = [u"素材名", u"文件名", u"起始帧", u"结束帧", u"路径", u"版本", u"修改日期", u"是否已经上传", u"选择"]
         
         
         self.contentModel = TianD_convert2movModel.TreeModel(rootNode, self.orderedDic, headers)
         self.treeView.setModel(self.contentModel)
+        self.headerView = self.treeView.header()
+        self.headerView.setStyleSheet(HEADERVIEW_STYLE)
     
         # add comboBox into table view
         self.treeView.setItemDelegateForColumn(5, TianD_convert2movDelegate.ComboBoxDelegate(self.treeView, rootNode))
@@ -292,9 +328,9 @@ class loadWorker(QtCore.QThread):
     
     def start(self, d):
         super(loadWorker, self).start()
-        self.source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 路径, [版本列表], 上传时间, 服务器上是否有, 描述]}}
+        self.source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 路径, [版本列表], 上传时间, 服务器上是否有, 选择标记, 描述, 正确性标记]}}
                         'sc01':{   \
-                                "bg_color": [["xxxxx1", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 0, 0, "this is sc01 bg_color1", "success"], \
+                                "bg_color": [["xxxxx1", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 0, 0, u"这是 sc01 bg_color1", "success"], \
                                              ["xxxxx2", 1001, 1010, "z:\\ddd", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 bg_color2", "warning"]], \
                                 "occ": [["xxxxx3", 1001, 1010, "z:\\aaa", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 occ", "success"],]  \
                                 }, 
