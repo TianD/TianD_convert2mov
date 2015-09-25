@@ -106,3 +106,4 @@ class Label(QtGui.QLabel):
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtGui.QColor(random.randint(0,255), random.randint(0,255), random.randint(0,255), 255))
         self.setPalette(palette)
+        

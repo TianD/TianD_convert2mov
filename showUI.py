@@ -65,6 +65,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         #self.upLoadBtn.setStyleSheet(BUTTON_STYLE)
         self.runBtn.setStyleSheet(BUTTON_STYLE)
         
+        
         #show in status bar
         self.progress = TianD_convert2movWidget.XProgressBar()
         self.text = QtGui.QLabel()
@@ -83,7 +84,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.thread = Worker()
         #self.upLoadBtn.clicked.connect(self.slotUploadStart)
         #self.toMOVBtn.clicked.connect(self.slotConvertStart)
-        self.runBtn.clicked.connect(self.slotUploadStart)
+        self.runBtn.clicked.connect(self.slotRunStart)
         
         #connect choice label clicked signal to check command
         self.allLabel.clicked.connect(self.checkAll)
@@ -91,6 +92,10 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.greenLabel.clicked.connect(self.checkGreen)
         self.yellowLabel.clicked.connect(self.checkYellow)
         self.redLabel.clicked.connect(self.checkRed)
+        
+        #set radioButton default value and connect checked signal to display command
+        self.toMovRadioBtn.setChecked(1)
+        self.buttongroup.buttonClicked.connect(self.displayTreeView)
         
     def loading(self, l):
         self.loadingUI =  TianD_loadingUI.loadingDlg(self)
@@ -105,13 +110,16 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
             source = self.gth.source
             self.gth.exit()
             self.setTreeView(source)
-            
+    
+    def displayTreeView(self, index):
+        print index
+        
     def setTreeView(self, d):        
         
         rootNode = TianD_convert2movModel.Node("Root")
         
         self.analyzePath(d, rootNode)
-        headers = [u"素材名", u"文件名", u"起始帧", u"结束帧", u"路径", u"版本", u"修改日期", u"是否已经上传", u"选择"]
+        headers = [u"素材名", u"输出名", u"起始帧", u"结束帧", u"输出路径", u"版本", u"修改日期", u"是否已经上传", u"选择"]
         
         
         self.contentModel = TianD_convert2movModel.TreeModel(rootNode, self.orderedDic, headers)
@@ -131,7 +139,6 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                 for h in range(midNode.childCount()):
                     index = self.contentModel.index(h, 5, midindex)
                     self.treeView.openPersistentEditor(index)
-                    
                     
         #treeview expand all children
         self.treeView.expandAll()
@@ -153,7 +160,6 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                 for v in cv:
                   tipnode = TianD_convert2movModel.Node(v[:-1], midnode)
 
-
     def refreshDescription(self, index):
         node = index.internalPointer()
         row = index.row()
@@ -165,27 +171,41 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
             self.descriptionBrowser.append(self.headText)
             self.descriptionBrowser.append("<p><big>&nbsp;&nbsp;%s</big></p>" %descriptionText)       
         
-    def slotUploadStart(self):
-        running = self.thread.isRunning()
-        if not running :
-            self.thread.btnCmdFlag = 1
-            self.thread.progressSignal.connect(self.statusShow)
-            self.thread.start(self.getChecked())
-
+#     def slotUploadStart(self):
+#         running = self.thread.isRunning()
+#         if not running :
+#             self.thread.btnCmdFlag = 1
+#             self.thread.progressSignal.connect(self.statusShow)
+#             self.thread.start(self.getChecked())
+# 
+#     
+#     def slotConvertStart(self):
+#         running = self.thread.isRunning()
+#         if not running :
+#             self.thread.btnCmdFlag = 0
+#             self.thread.progressSignal.connect(self.statusShow)
+#             self.thread.start(self.getChecked())
     
-    def slotConvertStart(self):
+    def slotRunStart(self):
+        mode = self.buttongroup.checkedId()
+        print mode
         running = self.thread.isRunning()
+        print self.getChecked()
         if not running :
-            self.thread.btnCmdFlag = 0
+            if mode == -2:
+                self.thread.btnCmdFlag = 0
+            elif mode == -3:
+                self.thread.btnCmdFlag = 1
+            else :
+                print "nothing is selected"
+                return False
             self.thread.progressSignal.connect(self.statusShow)
             self.thread.start(self.getChecked())
-     
             
     def closeEvent(self, event):
         super(TianD_convert2movUI, self).closeEvent(event)
         self.thread.exit()
-        
-    
+          
     def statusShow(self, value, text, flag):
         self.progress.setValue(value)
         self.text.setText(text)
@@ -199,7 +219,6 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
     def hideStatus(self):
         self.text.setHidden(1)
 
-    
     def checkAll(self):
         print "allLabel is clicked"
         for index in self.contentModel.persistentIndexList():
@@ -260,17 +279,19 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                     self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
                     
     def getChecked(self):
-        selected = []
+        selected = dict()
         for index in self.contentModel.persistentIndexList():
             row = index.row()
             node = index.internalPointer()
             if not node.childCount():
                 if node.value()[-2] == 2:
-                    path = node.value()[3] + '\\' + node.value()[0]
-                    path in selected or selected.append(path)
+                    parent = index.parent()
+                    parentNode = parent.internalPointer()
+                    topparent = parent.parent()
+                    topparentNode = topparent.internalPointer()
+                    selected.setdefault(topparentNode.value(), dict()).setdefault(parentNode.value(), node.value())
         return selected
-            
-                        
+    
 class Worker(QtCore.QThread):
     progressSignal = QtCore.pyqtSignal(int, str, int)
     
@@ -283,14 +304,14 @@ class Worker(QtCore.QThread):
         self.working = False
         self.wait()
     
-    def start(self, list):
+    def start(self, dic):
         super(Worker, self).start()
         self.working = True
-        self.list = list
+        self.dic = dic
     
     def run(self):
         while self.working :
-            for l in self.list:
+            for l in self.dic:
                 for i in range(100):
                     if self.btnCmdFlag :            #if self.btnCmd == 1 :run upload; if self.btnCmd == 0: run convert
                         print "upload footage %d" %(i+1)
@@ -317,6 +338,8 @@ class Worker(QtCore.QThread):
 #             flag +=1
 #         self.working = False
  
+ 
+# 
 class loadWorker(QtCore.QThread):
     flagSignal = QtCore.pyqtSignal(int)
     dictSignal = QtCore.pyqtSignal(dict)
@@ -328,7 +351,7 @@ class loadWorker(QtCore.QThread):
     
     def start(self, d):
         super(loadWorker, self).start()
-        self.source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 路径, [版本列表], 上传时间, 服务器上是否有, 选择标记, 描述, 正确性标记]}}
+        self.source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 输出路径, [版本列表], 上传时间, 服务器上是否有, 选择标记, 描述, 正确性标记]}}
                         'sc01':{   \
                                 "bg_color": [["xxxxx1", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 0, 0, u"这是 sc01 bg_color1", "success"], \
                                              ["xxxxx2", 1001, 1010, "z:\\ddd", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 bg_color2", "warning"]], \

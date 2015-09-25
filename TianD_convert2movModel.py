@@ -96,7 +96,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 #         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
         column = index.column()
         node = index.internalPointer()
-        if column == 5:
+        if column == 5 or column == 1 or column == 4:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
         elif not node.childCount() and column == 8:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
@@ -111,7 +111,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         node = index.internalPointer()
         column = index.column()
         
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if node.childCount():
                 if column == 0:
                     return node.value()
@@ -215,4 +215,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                 else :
                     node.value()[column-1] = 0
                 self.dataChanged.emit(index, index)
+                return True
+            
+            if (column == 1 or column == 4)and role == QtCore.Qt.EditRole:
+                node.value()[column-1] = str(value.toString())
                 return True

@@ -65,3 +65,4 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         value = editor.currentIndex()
         model.setData(index, editor.itemData( value, QtCore.Qt.DisplayRole ) )
+        
