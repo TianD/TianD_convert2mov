@@ -42,11 +42,13 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
         super(ComboBoxDelegate, self).__init__(parent)
         self.parent = parent
         self.__root = root
+        self.__model = self.parent.model()
         
     def createEditor(self, parent, option, index):
         node = index.internalPointer()
         row = index.row()
         column = index.column()
+        values = node.value()[column-1]
         if self.__root.childCount(): 
             if not node.childCount():
                 childNode = self.__root.child(row)
@@ -55,14 +57,21 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
                 COMPLETE_COMBOBOX_STYLE = COMBOBOX_STYLE + colorStr[2:] + ";\n}"
                 editor = QtGui.QComboBox(parent)
                 editor.setStyleSheet(COMPLETE_COMBOBOX_STYLE)
-                editor.addItems(node.value()[column-1])
+                editor.addItems(values)
+                #赋予combobox第一个值
+                self.__model.setData(index, editor.itemData( 0, QtCore.Qt.DisplayRole ) )
+                #self.connect(editor, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("currentIndexChanged()"))
                 return editor
         
     def setEditorData(self, editor, index):
         value = index.model().data(index, QtCore.Qt.DisplayRole)
-        editor.setCurrentIndex(editor.findText(value[0]))
+        editor.setCurrentIndex(editor.findText(value))
         
     def setModelData(self, editor, model, index):
         value = editor.currentIndex()
         model.setData(index, editor.itemData( value, QtCore.Qt.DisplayRole ) )
+    
+#     @QtCore.pyqtSlot()
+#     def currentIndexChanged(self): 
+#         self.commitData.emit(self.sender())
         

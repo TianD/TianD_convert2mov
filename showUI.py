@@ -112,6 +112,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
             self.setTreeView(source)
     
     def displayTreeView(self, index):
+        
         print index
         
     def setTreeView(self, d):        
@@ -128,7 +129,8 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.headerView.setStyleSheet(HEADERVIEW_STYLE)
     
         # add comboBox into table view
-        self.treeView.setItemDelegateForColumn(5, TianD_convert2movDelegate.ComboBoxDelegate(self.treeView, rootNode))
+        delegate = TianD_convert2movDelegate.ComboBoxDelegate(self.treeView, rootNode)
+        self.treeView.setItemDelegateForColumn(5, delegate)
         
         for r in range(rootNode.childCount()):
             topNode = rootNode.child(r)
@@ -170,25 +172,9 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
             self.descriptionBrowser.clear()
             self.descriptionBrowser.append(self.headText)
             self.descriptionBrowser.append("<p><big>&nbsp;&nbsp;%s</big></p>" %descriptionText)       
-        
-#     def slotUploadStart(self):
-#         running = self.thread.isRunning()
-#         if not running :
-#             self.thread.btnCmdFlag = 1
-#             self.thread.progressSignal.connect(self.statusShow)
-#             self.thread.start(self.getChecked())
-# 
-#     
-#     def slotConvertStart(self):
-#         running = self.thread.isRunning()
-#         if not running :
-#             self.thread.btnCmdFlag = 0
-#             self.thread.progressSignal.connect(self.statusShow)
-#             self.thread.start(self.getChecked())
     
     def slotRunStart(self):
         mode = self.buttongroup.checkedId()
-        print mode
         running = self.thread.isRunning()
         print self.getChecked()
         if not running :
@@ -220,6 +206,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.text.setHidden(1)
 
     def checkAll(self):
+        #勾选全部
         print "allLabel is clicked"
         for index in self.contentModel.persistentIndexList():
             row = index.row()
@@ -230,6 +217,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                 self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
                 
     def checkNone(self):
+        #取消勾选
         print "noneLabel is clicked"
         for index in self.contentModel.persistentIndexList():
             row = index.row()
@@ -238,8 +226,9 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                 parent = index.parent()
                 index = self.contentModel.index(row, 8, parent)
                 self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
-        
+       
     def checkGreen(self):
+        #勾选绿色背景
         print "greenLabel is clicked"
         for index in self.contentModel.persistentIndexList():
             row = index.row()
@@ -253,6 +242,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                     self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
         
     def checkYellow(self):
+        #勾选黄色背景
         print "yellowLabel is clicked"
         for index in self.contentModel.persistentIndexList():
             row = index.row()
@@ -266,6 +256,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                     self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)  
                          
     def checkRed(self):
+        #勾选红色背景
         print "redLabel is clicked"
         for index in self.contentModel.persistentIndexList():
             row = index.row()
@@ -277,11 +268,14 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                     self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
                 else :
                     self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
-                    
+        
     def getChecked(self):
+        #获取界面上所选择的项目,返回一个字典
+        #现在那个版本号返回的还是个列表,还没有修改
         selected = dict()
         for index in self.contentModel.persistentIndexList():
             row = index.row()
+            column = index.column()
             node = index.internalPointer()
             if not node.childCount():
                 if node.value()[-2] == 2:
@@ -289,7 +283,9 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                     parentNode = parent.internalPointer()
                     topparent = parent.parent()
                     topparentNode = topparent.internalPointer()
-                    selected.setdefault(topparentNode.value(), dict()).setdefault(parentNode.value(), node.value())
+                    selected.setdefault(topparentNode.value(), dict()).setdefault(parentNode.value(), list())
+                    if node.value() not in selected[topparentNode.value()][parentNode.value()]: 
+                        selected[topparentNode.value()][parentNode.value()].append(node.value())
         return selected
     
 class Worker(QtCore.QThread):

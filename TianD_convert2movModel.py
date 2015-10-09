@@ -43,26 +43,6 @@ class Node(object):
         if self.__parent is not None:
             return self.__parent.__children.index(self)
         
-    def log(self, tabLevel = -1):
-        output = ""
-        tabLevel +=1
-        
-        for i in range(tabLevel):
-            output +='|\t'
-            
-        output += "|------" + self.__value[0] + "\n"
-        
-        for child in self.__children:
-            output += child.log(tabLevel)
-            
-        tabLevel -= 1
-        #output += "\n"
-        
-        return output
-
-    def __repr__(self):
-        return self.log()
-        
         
 class TreeModel(QtCore.QAbstractItemModel):
     
@@ -93,10 +73,9 @@ class TreeModel(QtCore.QAbstractItemModel):
 
 
     def flags(self, index):
-#         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
         column = index.column()
         node = index.internalPointer()
-        if column == 5 or column == 1 or column == 4:
+        if not node.childCount() and (column == 5 or column == 1 or column == 4):
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable
         elif not node.childCount() and column == 8:
             return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
@@ -111,14 +90,16 @@ class TreeModel(QtCore.QAbstractItemModel):
         node = index.internalPointer()
         column = index.column()
         
+        #生成其他几列的值
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if node.childCount():
                 if column == 0:
                     return node.value()
             else :
-                if column > 0 and column < 7:
+                if column > 0 and column < 7 :
                     return node.value()[column-1]
-        
+
+        #生成第八列(是否已经上传)的装饰值
         if role == QtCore.Qt.DecorationRole:
             if not node.childCount():
                 if node.value()[6] and column == 7 :
@@ -126,15 +107,18 @@ class TreeModel(QtCore.QAbstractItemModel):
                     icon.scaled(icon.size()*0.2)
                     return icon
         
+        #生成每个字符的字体和大小
         if role == QtCore.Qt.FontRole:
             
             font = QtGui.QFont("Helvetica [Cronyx]")
             font.setPointSize(12)
             return font
         
+        #生成最后一列(选择)的值
         if not node.childCount() and column == 8 and role == QtCore.Qt.CheckStateRole:
             return node.value()[column-1]
         
+        #生成每行的背景色
         if role == QtCore.Qt.BackgroundRole:
              
             row = index.row()
@@ -154,10 +138,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             else :
                 color = self.__white
              
-#             linearGradient = QtGui.QLinearGradient()
-#             linearGradient.setColorAt(0, self.__white)
-#             linearGradient.setColorAt(1, color)
-#             brush = QtGui.QBrush(linearGradient)
             brush = QtGui.QBrush(color, style = QtCore.Qt.SolidPattern)
             brush.setColor(color)
             
@@ -209,6 +189,8 @@ class TreeModel(QtCore.QAbstractItemModel):
             column = index.column()
             parent = index.parent()
             node = index.internalPointer()
+            
+            #修改最后一列(选择)的值
             if column == 8 and role == QtCore.Qt.CheckStateRole:
                 if value == QtCore.Qt.Checked:
                     node.value()[column-1] = 2
@@ -217,6 +199,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.dataChanged.emit(index, index)
                 return True
             
-            if (column == 1 or column == 4)and role == QtCore.Qt.EditRole:
+            #修改第二列(输出名)和第五列(输出路径)的值
+            if (column == 1 or column == 4) and role == QtCore.Qt.EditRole:
                 node.value()[column-1] = str(value.toString())
                 return True
+            
+            #修改第六列(版本号)的值
+            if column == 5 and (role == QtCore.Qt.EditRole or role == QtCore.Qt.DisplayRole):
+                node.value()[column-1] = str(value.toString())
+                return True
+            
