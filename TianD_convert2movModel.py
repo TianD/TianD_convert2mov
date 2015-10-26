@@ -49,7 +49,6 @@ class TreeModel(QtCore.QAbstractItemModel):
     def __init__(self, root, source, headers = [], parent = None):
         super(TreeModel, self).__init__(parent)
         self.__rootNode = root
-        #self.__data = data
         self.__red = QtGui.QColor("#FF8585")
         self.__green = QtGui.QColor("#85FF85")
         self.__yellow = QtGui.QColor("#FFFF85")
@@ -88,16 +87,22 @@ class TreeModel(QtCore.QAbstractItemModel):
             return None
         
         node = index.internalPointer()
+        row = index.column()
         column = index.column()
         
+        
+        #先获取版本号, 根据不同的版本号获取其他相应的属性的值
         #生成其他几列的值
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if node.childCount():
                 if column == 0:
                     return node.value()
             else :
-                if column > 0 and column < 7 :
+                if column > 0 and column < 7 and column not in [2, 3]:
                     return node.value()[column-1]
+                elif column in [2,3]:
+                    return node.value()[column-1][0]
+                
 
         #生成第八列(是否已经上传)的装饰值
         if role == QtCore.Qt.DecorationRole:
@@ -208,4 +213,4 @@ class TreeModel(QtCore.QAbstractItemModel):
             if column == 5 and (role == QtCore.Qt.EditRole or role == QtCore.Qt.DisplayRole):
                 node.value()[column-1] = str(value.toString())
                 return True
-            
+    

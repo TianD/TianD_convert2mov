@@ -347,17 +347,17 @@ class loadWorker(QtCore.QThread):
     
     def start(self, d):
         super(loadWorker, self).start()
-        self.source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 输出路径, [版本列表], 上传时间, 服务器上是否有, 选择标记, 描述, 正确性标记]}}
+        self.source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 输出路径, [版本列表], 上传时间, 服务器上是否有, 选择标记, 描述, 正确性标记, 素材路径]}}
                         'sc01':{   \
-                                "bg_color": [["xxxxx1", 1001, 1010, "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 0, 0, u"这是 sc01 bg_color1", "success"], \
-                                             ["xxxxx2", 1001, 1010, "z:\\ddd", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 bg_color2", "warning"]], \
-                                "occ": [["xxxxx3", 1001, 1010, "z:\\aaa", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 occ", "success"],]  \
+                                "bg_color": [["xxxxx1", [1001,1002,1003], [1010,1011,1012], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 0, 0, u"这是 sc01 bg_color1", "success"], \
+                                             ["xxxxx2", [1002,1003], [1020,1021], "z:\\ddd", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 bg_color2", "warning"]], \
+                                "occ": [["xxxxx3", [1003,1004], [1030,1031], "z:\\aaa", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 occ", "success"],]  \
                                 }, 
-                        'sc02':{"bg_color": [["xxxxx4", 1001, 1011, "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 1, 0, "this is sc02 bg_color", "error"]]},
-                        'sc03':{"bg_color": [["xxxxx5", 1001, 1012, "z:\\bbb", ["c001","c002","c003"], "2015/8/18", 0, 0, "this is sc03 bg_color", "error"]]},
-                        'sc04':{"bg_color": [["xxxxx6", 1001, 1013, "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 1, 0, "this is sc04 bg_color", "error"]]},
-                        'sc05':{"bg_color": [["xxxxx7", 1001, 1011, "z:\\ccc", ["c001"], "2015/8/18", 0, 0, "this is sc05 bg_color", "success"]]},
-                        'sc06':{"bg_color": [["xxxxx8", 1001, 1016, "z:\\aaa", ["c001","c002"], "2015/8/18", 0, 0, "this is sc06 bg_color", "warning"]]}
+                        'sc02':{"bg_color": [["xxxxx4", [1004,1005,1006], [1040,1041,1042], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 1, 0, "this is sc02 bg_color", "error"]]},
+                        'sc03':{"bg_color": [["xxxxx5", [1005,1006,1007], [1050,1051,1052], "z:\\bbb", ["c001","c002","c003"], "2015/8/18", 0, 0, "this is sc03 bg_color", "error"]]},
+                        'sc04':{"bg_color": [["xxxxx6", [1006,1007,1008], [1060,1061,1062], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 1, 0, "this is sc04 bg_color", "error"]]},
+                        'sc05':{"bg_color": [["xxxxx7", [1007], [1070], "z:\\ccc", ["c001"], "2015/8/18", 0, 0, "this is sc05 bg_color", "success"]]},
+                        'sc06':{"bg_color": [["xxxxx8", [1008,1009], [1080,1081], "z:\\aaa", ["c001","c002"], "2015/8/18", 0, 0, "this is sc06 bg_color", "warning"]]}
                         }
         
     def run(self):
