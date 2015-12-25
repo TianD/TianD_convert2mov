@@ -12,6 +12,7 @@ Created on 2015年7月30日 下午7:25:38
 from PyQt4 import QtCore, QtGui
 
 import LOGO_rc
+from functools import partial
 
 COMBOBOX_STYLE = """
 QComboBox::drop-down {
@@ -37,7 +38,7 @@ QComboBox::down-arrow {
 
 
 class ComboBoxDelegate(QtGui.QStyledItemDelegate):
-    
+    indexSignal = QtCore.pyqtSignal(QtCore.QModelIndex, int)
     def __init__(self, parent, root):
         super(ComboBoxDelegate, self).__init__(parent)
         self.parent = parent
@@ -60,18 +61,16 @@ class ComboBoxDelegate(QtGui.QStyledItemDelegate):
                 editor.addItems(values)
                 #赋予combobox第一个值
                 self.__model.setData(index, editor.itemData( 0, QtCore.Qt.DisplayRole ) )
-                #self.connect(editor, QtCore.SIGNAL("currentIndexChanged(int)"), self, QtCore.SLOT("currentIndexChanged()"))
+                editor.currentIndexChanged.connect(partial(self.parent.model().setBroData, index))
                 return editor
         
     def setEditorData(self, editor, index):
         value = index.model().data(index, QtCore.Qt.DisplayRole)
         editor.setCurrentIndex(editor.findText(value))
+        self.indexSignal.emit(index, editor.findText(value))
         
     def setModelData(self, editor, model, index):
         value = editor.currentIndex()
+        #self.indexSignal.emit(index, value)
         model.setData(index, editor.itemData( value, QtCore.Qt.DisplayRole ) )
-    
-#     @QtCore.pyqtSlot()
-#     def currentIndexChanged(self): 
-#         self.commitData.emit(self.sender())
         

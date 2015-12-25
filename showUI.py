@@ -131,6 +131,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         # add comboBox into table view
         delegate = TianD_convert2movDelegate.ComboBoxDelegate(self.treeView, rootNode)
         self.treeView.setItemDelegateForColumn(5, delegate)
+        delegate.indexSignal.connect(self.contentModel.setBroData)
         
         for r in range(rootNode.childCount()):
             topNode = rootNode.child(r)
@@ -160,7 +161,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
             for ck, cv in self.orderedDic[key].items():
                 midnode = TianD_convert2movModel.Node(ck, topnode)
                 for v in cv:
-                  tipnode = TianD_convert2movModel.Node(v[:-1], midnode)
+                    tipnode = TianD_convert2movModel.Node(v[:-1], midnode)
 
     def refreshDescription(self, index):
         node = index.internalPointer()
@@ -359,6 +360,7 @@ class loadWorker(QtCore.QThread):
                         'sc05':{"bg_color": [["xxxxx7", [1007], [1070], "z:\\ccc", ["c001"], "2015/8/18", 0, 0, "this is sc05 bg_color", "success"]]},
                         'sc06':{"bg_color": [["xxxxx8", [1008,1009], [1080,1081], "z:\\aaa", ["c001","c002"], "2015/8/18", 0, 0, "this is sc06 bg_color", "warning"]]}
                         }
+    
         
     def run(self):
         self.sleep(1)

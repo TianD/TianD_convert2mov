@@ -101,7 +101,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 if column > 0 and column < 7 and column not in [2, 3]:
                     return node.value()[column-1]
                 elif column in [2,3]:
-                    return node.value()[column-1][0]
+                    return node.value()[column-1]
                 
 
         #生成第八列(是否已经上传)的装饰值
@@ -207,10 +207,35 @@ class TreeModel(QtCore.QAbstractItemModel):
             #修改第二列(输出名)和第五列(输出路径)的值
             if (column == 1 or column == 4) and role == QtCore.Qt.EditRole:
                 node.value()[column-1] = str(value.toString())
+                self.dataChanged.emit(index, index)
                 return True
             
             #修改第六列(版本号)的值
             if column == 5 and (role == QtCore.Qt.EditRole or role == QtCore.Qt.DisplayRole):
                 node.value()[column-1] = str(value.toString())
+                self.dataChanged.emit(index, index)
+                return True
+            
+            if column in [2,3] and role == QtCore.Qt.DisplayRole:
+                print node.value(), node.value()[column -1]
+                node.value()[column -1] = str(value)
+                self.dataChanged.emit(index, index)
                 return True
     
+    @QtCore.pyqtSlot(QtCore.QModelIndex, int)
+    def setBroData(self, index, i):
+        if index.isValid():
+            row = index.row()
+            column = index.column()
+            parent = index.parent()
+            node = index.internalPointer()
+            parentNode = parent.internalPointer()
+            topparent = parent.parent()
+            topNode = topparent.internalPointer()
+            
+            sfIndex = self.index(row, 2, parent)
+            efIndex = self.index(row, 3, parent)
+            sfValue = self.source[topNode.value()][parentNode.value()][row][1][i]
+            efValue = self.source[topNode.value()][parentNode.value()][row][2][i]
+            self.setData(sfIndex, sfValue, QtCore.Qt.DisplayRole)
+            self.setData(efIndex, efValue, QtCore.Qt.DisplayRole)
