@@ -11,6 +11,7 @@ Created on 2015年7月30日 下午7:25:38
 
 import sys,time
 from collections import OrderedDict
+from functools import partial
 
 sys.dont_write_bytecode = True
 
@@ -23,6 +24,9 @@ import TianD_convert2movDelegate
 import TianD_convert2movWidget
 import TianD_loadingUI
 
+
+###
+# design control style by qss
 TEXTBROWSER_STYLE = """
 QTextBrowser{
     border: 2px solid grey;
@@ -50,6 +54,7 @@ QHeaderView::section {
     border: 1px solid grey;
 }
 """
+###
 
 class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
 
@@ -57,16 +62,17 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         super(TianD_convert2movUI, self).__init__(parent)
         self.setupUi(self)
         
-        #set window background color
+        # set window background color
         self.setStyleSheet("background: #F0F0F0;")
+        # set widget styleSheet
         self.descriptionBrowser.setStyleSheet(TEXTBROWSER_STYLE)
         self.reorderBtn.setStyleSheet(BUTTON_STYLE)
-        #self.toMOVBtn.setStyleSheet(BUTTON_STYLE)
-        #self.upLoadBtn.setStyleSheet(BUTTON_STYLE)
         self.runBtn.setStyleSheet(BUTTON_STYLE)
         
+        # run the commads in sub thread
+        self.thread = Worker()
         
-        #show in status bar
+        # show progress and text in status bar
         self.progress = TianD_convert2movWidget.XProgressBar()
         self.text = QtGui.QLabel()
         self.statusbar.addWidget(self.progress)
@@ -74,26 +80,28 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.progress.setHidden(1)
         self.text.setHidden(1)
                 
-        #tableView receive signal from drop event
+        # treeView receive signal from drop event
         self.connect(self.treeView, QtCore.SIGNAL("dropped"), self.loading)
-                    
-        #connect clicked signal to refreshDescription command
+        
+        # connect clicked signal to refreshDescription command
         self.treeView.clicked.connect(self.refreshDescription)
                 
-        #run the commads in sub thread
-        self.thread = Worker()
-        #self.upLoadBtn.clicked.connect(self.slotUploadStart)
-        #self.toMOVBtn.clicked.connect(self.slotConvertStart)
+        # connect clicked signal to slotRunStart command
         self.runBtn.clicked.connect(self.slotRunStart)
         
-        #connect choice label clicked signal to check command
-        self.allLabel.clicked.connect(self.checkAll)
-        self.noneLabel.clicked.connect(self.checkNone)
-        self.greenLabel.clicked.connect(self.checkGreen)
-        self.yellowLabel.clicked.connect(self.checkYellow)
-        self.redLabel.clicked.connect(self.checkRed)
+        # connect choice label clicked signal to check command
+#         self.allLabel.clicked.connect(self.checkAll)
+#         self.noneLabel.clicked.connect(self.checkNone)
+#         self.greenLabel.clicked.connect(self.checkGreen)
+#         self.yellowLabel.clicked.connect(self.checkYellow)
+#         self.redLabel.clicked.connect(self.checkRed)
+        self.allLabel.clicked.connect(partial(self.checkByColor, "All"))
+        self.noneLabel.clicked.connect(partial(self.checkByColor, "None"))
+        self.greenLabel.clicked.connect(partial(self.checkByColor, "Green"))
+        self.yellowLabel.clicked.connect(partial(self.checkByColor, "Yellow"))
+        self.redLabel.clicked.connect(partial(self.checkByColor, "Red"))
         
-        #set radioButton default value and connect checked signal to display command
+        # set radioButton default value and connect checked signal to display command
         self.toMovRadioBtn.setChecked(1)
         self.buttongroup.buttonClicked.connect(self.displayTreeView)
         
@@ -206,68 +214,32 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
     def hideStatus(self):
         self.text.setHidden(1)
 
-    def checkAll(self):
-        #勾选全部
-        print "allLabel is clicked"
+    def checkByColor(self, color = "Green"):
+        #根据颜色背景勾选不同的item
         for index in self.contentModel.persistentIndexList():
             row = index.row()
             node = index.internalPointer()
             if not node.childCount():
                 parent = index.parent()
                 index = self.contentModel.index(row, 8, parent)
-                self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
-                
-    def checkNone(self):
-        #取消勾选
-        print "noneLabel is clicked"
-        for index in self.contentModel.persistentIndexList():
-            row = index.row()
-            node = index.internalPointer()
-            if not node.childCount():
-                parent = index.parent()
-                index = self.contentModel.index(row, 8, parent)
-                self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
-       
-    def checkGreen(self):
-        #勾选绿色背景
-        print "greenLabel is clicked"
-        for index in self.contentModel.persistentIndexList():
-            row = index.row()
-            node = index.internalPointer()
-            if not node.childCount():
-                parent = index.parent()
-                index = self.contentModel.index(row, 8, parent)
-                if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "success":
+                if color == "All":
                     self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
-                else :
-                    self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
-        
-    def checkYellow(self):
-        #勾选黄色背景
-        print "yellowLabel is clicked"
-        for index in self.contentModel.persistentIndexList():
-            row = index.row()
-            node = index.internalPointer()           
-            if not node.childCount():
-                parent = index.parent()
-                index = self.contentModel.index(row, 8, parent)
-                if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "warning":
-                    self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
-                else :
-                    self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)  
-                         
-    def checkRed(self):
-        #勾选红色背景
-        print "redLabel is clicked"
-        for index in self.contentModel.persistentIndexList():
-            row = index.row()
-            node = index.internalPointer()
-            if not node.childCount():
-                parent = index.parent()
-                index = self.contentModel.index(row, 8, parent)                
-                if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "error":
-                    self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
-                else :
+                elif color == "Green":
+                    if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "success":
+                        self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
+                    else :
+                        self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
+                elif color == "Yellow":
+                    if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "warning":
+                        self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
+                    else :
+                        self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
+                elif color == "Red":
+                    if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "error":
+                        self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
+                    else :
+                        self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
+                else:
                     self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
         
     def getChecked(self):
@@ -288,7 +260,73 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                     if node.value() not in selected[topparentNode.value()][parentNode.value()]: 
                         selected[topparentNode.value()][parentNode.value()].append(node.value())
         return selected
-    
+
+#     def checkAll(self):
+#         #勾选全部
+#         print "allLabel is clicked"
+#         for index in self.contentModel.persistentIndexList():
+#             row = index.row()
+#             node = index.internalPointer()
+#             if not node.childCount():
+#                 parent = index.parent()
+#                 index = self.contentModel.index(row, 8, parent)
+#                 self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
+#                 
+#     def checkNone(self):
+#         #取消勾选
+#         print "noneLabel is clicked"
+#         for index in self.contentModel.persistentIndexList():
+#             row = index.row()
+#             node = index.internalPointer()
+#             if not node.childCount():
+#                 parent = index.parent()
+#                 index = self.contentModel.index(row, 8, parent)
+#                 self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
+#        
+#     def checkGreen(self):
+#         #勾选绿色背景
+#         print "greenLabel is clicked"
+#         for index in self.contentModel.persistentIndexList():
+#             row = index.row()
+#             node = index.internalPointer()
+#             if not node.childCount():
+#                 parent = index.parent()
+#                 index = self.contentModel.index(row, 8, parent)
+#                 if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "success":
+#                     self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
+#                 else :
+#                     self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
+#         
+#     def checkYellow(self):
+#         #勾选黄色背景
+#         print "yellowLabel is clicked"
+#         for index in self.contentModel.persistentIndexList():
+#             row = index.row()
+#             node = index.internalPointer()           
+#             if not node.childCount():
+#                 parent = index.parent()
+#                 index = self.contentModel.index(row, 8, parent)
+#                 if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "warning":
+#                     self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
+#                 else :
+#                     self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)  
+#                          
+#     def checkRed(self):
+#         #勾选红色背景
+#         print "redLabel is clicked"
+#         for index in self.contentModel.persistentIndexList():
+#             row = index.row()
+#             node = index.internalPointer()
+#             if not node.childCount():
+#                 parent = index.parent()
+#                 index = self.contentModel.index(row, 8, parent)                
+#                 if self.orderedDic[node.parent().parent().value()][node.parent().value()][row][-1] == "error":
+#                     self.contentModel.setData(index, value = QtCore.Qt.Checked, role = QtCore.Qt.CheckStateRole)
+#                 else :
+#                     self.contentModel.setData(index, value = QtCore.Qt.Unchecked, role = QtCore.Qt.CheckStateRole)
+        
+
+# 该进程用于输出
 class Worker(QtCore.QThread):
     progressSignal = QtCore.pyqtSignal(int, str, int)
     
@@ -319,24 +357,8 @@ class Worker(QtCore.QThread):
                     self.progressSignal.emit(i+1, "running: %s" %l, 0)
             self.working = False
             self.progressSignal.emit(100, "finish!!!", 1)
-
-#         import os
-#         import os.path
-#         paths = 'Z:/Netrender/renderbus/Kaixuanoutput/20150717'
-#         path = os.path.normpath(paths)
-#         files = os.listdir(path)
-#         convertCmd = 'xcopy {0} {1} /e /y'
-#         flag = 0
-#         for x in files:
-#             path1 = path+'\\'+x
-#             path2 = 'E:\\temp\\'
-#             os.system(convertCmd.format(path1,path2))
-#             self.progressSignal.emit((flag+1.0)/len(files)*100)
-#             flag +=1
-#         self.working = False
  
- 
-# 
+# 该进程接收提供的数据, 
 class loadWorker(QtCore.QThread):
     flagSignal = QtCore.pyqtSignal(int)
     dictSignal = QtCore.pyqtSignal(dict)
@@ -348,17 +370,17 @@ class loadWorker(QtCore.QThread):
     
     def start(self, d):
         super(loadWorker, self).start()
-        self.source = {#{镜头号: {分层: [上传名称, 起始帧, 结束帧, 输出路径, [版本列表], 上传时间, 服务器上是否有, 选择标记, 描述, 正确性标记, 素材路径]}}
+        self.source = {#{镜头号: {分层:      [上传名称,  起始帧,             结束帧,           输出路径,  [版本列表],             上传时间,     服务器上是否有, 选择标记, 描述,                     正确性标记, 素材路径]}}
                         'sc01':{   \
-                                "bg_color": [["xxxxx1", [1001,1002,1003], [1010,1011,1012], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 0, 0, u"这是 sc01 bg_color1", "success"], \
-                                             ["xxxxx2", [1002,1003], [1020,1021], "z:\\ddd", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 bg_color2", "warning"]], \
-                                "occ": [["xxxxx3", [1003,1004], [1030,1031], "z:\\aaa", ["c001","c002"], "2015/8/18", 0, 0, "this is sc01 occ", "success"],]  \
+                                "bg_color": [["xxxxx1", [1001,1002,1003], [1010,1011,1012], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 0,              0,      u"这是 sc01 bg_color1",    "success"], \
+                                             ["xxxxx2", [1002,1003],      [1020,1021],      "z:\\ddd", ["c001","c002"],        "2015/8/18", 0,              0,      "this is sc01 bg_color2", "warning"]], \
+                                "occ":      [["xxxxx3", [1003,1004],      [1030,1031],      "z:\\aaa", ["c001","c002"],        "2015/8/18", 0,              0,      "this is sc01 occ",       "success"],]  \
                                 }, 
-                        'sc02':{"bg_color": [["xxxxx4", [1004,1005,1006], [1040,1041,1042], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 1, 0, "this is sc02 bg_color", "error"]]},
-                        'sc03':{"bg_color": [["xxxxx5", [1005,1006,1007], [1050,1051,1052], "z:\\bbb", ["c001","c002","c003"], "2015/8/18", 0, 0, "this is sc03 bg_color", "error"]]},
-                        'sc04':{"bg_color": [["xxxxx6", [1006,1007,1008], [1060,1061,1062], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 1, 0, "this is sc04 bg_color", "error"]]},
-                        'sc05':{"bg_color": [["xxxxx7", [1007], [1070], "z:\\ccc", ["c001"], "2015/8/18", 0, 0, "this is sc05 bg_color", "success"]]},
-                        'sc06':{"bg_color": [["xxxxx8", [1008,1009], [1080,1081], "z:\\aaa", ["c001","c002"], "2015/8/18", 0, 0, "this is sc06 bg_color", "warning"]]}
+                        'sc02':{"bg_color": [["xxxxx4", [1004,1005,1006], [1040,1041,1042], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 1,              0,      "this is sc02 bg_color",  "error"]]},
+                        'sc03':{"bg_color": [["xxxxx5", [1005,1006,1007], [1050,1051,1052], "z:\\bbb", ["c001","c002","c003"], "2015/8/18", 0,              0,      "this is sc03 bg_color",  "error"]]},
+                        'sc04':{"bg_color": [["xxxxx6", [1006,1007,1008], [1060,1061,1062], "z:\\aaa", ["c001","c002","c003"], "2015/8/18", 1,              0,      "this is sc04 bg_color",  "error"]]},
+                        'sc05':{"bg_color": [["xxxxx7", [1007],           [1070],           "z:\\ccc", ["c001"],               "2015/8/18", 0,              0,      "this is sc05 bg_color",  "success"]]},
+                        'sc06':{"bg_color": [["xxxxx8", [1008,1009],      [1080,1081],      "z:\\aaa", ["c001","c002"],        "2015/8/18", 0,              0,      "this is sc06 bg_color",  "warning"]]}
                         }
     
         
