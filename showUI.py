@@ -90,11 +90,6 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.runBtn.clicked.connect(self.slotRunStart)
         
         # connect choice label clicked signal to check command
-#         self.allLabel.clicked.connect(self.checkAll)
-#         self.noneLabel.clicked.connect(self.checkNone)
-#         self.greenLabel.clicked.connect(self.checkGreen)
-#         self.yellowLabel.clicked.connect(self.checkYellow)
-#         self.redLabel.clicked.connect(self.checkRed)
         self.allLabel.clicked.connect(partial(self.checkByColor, "All"))
         self.noneLabel.clicked.connect(partial(self.checkByColor, "None"))
         self.greenLabel.clicked.connect(partial(self.checkByColor, "Green"))
@@ -112,6 +107,7 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
         self.gth.start(l)
         self.gth.flagSignal.connect(self.exitLoading)
             
+    # exit sub thread of loading
     def exitLoading(self, f):
         if f:
             self.loadingUI.deleteLater()
@@ -119,14 +115,14 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
             self.gth.exit()
             self.setTreeView(source)
     
+    
     def displayTreeView(self, index):
-        
         print index
         
     def setTreeView(self, d):        
-        
+        # create root node
         rootNode = TianD_convert2movModel.Node("Root")
-        
+    
         self.analyzePath(d, rootNode)
         headers = [u"素材名", u"输出名", u"起始帧", u"结束帧", u"输出路径", u"版本", u"修改日期", u"是否已经上传", u"选择"]
         
@@ -170,6 +166,8 @@ class TianD_convert2movUI(QtGui.QMainWindow, Ui_toMOVMainWindow):
                 midnode = TianD_convert2movModel.Node(ck, topnode)
                 for v in cv:
                     tipnode = TianD_convert2movModel.Node(v[:-1], midnode)
+        
+        return self.orderedDic
 
     def refreshDescription(self, index):
         node = index.internalPointer()
@@ -383,12 +381,20 @@ class loadWorker(QtCore.QThread):
                         'sc06':{"bg_color": [["xxxxx8", [1008,1009],      [1080,1081],      "z:\\aaa", ["c001","c002"],        "2015/8/18", 0,              0,      "this is sc06 bg_color",  "warning"]]}
                         }
     
-        
-    def run(self):
+
+    def run(self): 
         self.sleep(1)
         self.flagSignal.emit(1)
         self.dictSignal.emit(self.source)
         
+def makeData(sourceData):
+    outData = dict()
+    for key, value in sourceData.items():
+        subData = dict()
+        for subkey, subvalue in value.items():
+            subList = list()
+            #for i in subvalue:
+    
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)

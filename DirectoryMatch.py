@@ -131,5 +131,5 @@ if __name__ == "__main__":
     outDic = df.output()
     mid3 = time.time()
     print "mid3", time.ctime(mid3)
-    print mid3 - mid2
+    print mid3 - mid2file:///D:/2014-sdk-doc/cpp_ref/trans_circle_node_2trans_circle_node_8cpp-example.html
     print outDic
